@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenGradient — Platform Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #010208;
+  --glass: rgba(255,255,255,0.04);
+  --glass-border: rgba(255,255,255,0.08);
+  --c1: #00ff87;
+  --c2: #ff2d78;
+  --c3: #60efff;
+  --c4: #ffb800;
+  --text: #e8f8ff;
+  --muted: #4a6880;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Outfit', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── CANVAS PARTICLES ── */
+#canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ── NOISE OVERLAY ── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.4;
+}
+
+/* ── HEADER ── */
+header {
+  position: relative;
+  z-index: 10;
+  padding: 80px 24px 60px;
+  text-align: center;
+}
+
+.hero-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(0,255,135,0.06);
+  border: 1px solid rgba(0,255,135,0.18);
+  padding: 8px 22px;
+  border-radius: 100px;
+  font-family: 'Fira Code', monospace;
+  font-size: 11px;
+  color: var(--c1);
+  letter-spacing: 2px;
+  margin-bottom: 32px;
+  animation: popIn 0.8s cubic-bezier(0.34,1.56,0.64,1) both;
+  backdrop-filter: blur(10px);
+}
+
+.live-ring {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--c1);
+  position: relative;
+}
+
+.live-ring::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1px solid var(--c1);
+  animation: ringPulse 2s infinite;
+}
+
+@keyframes ringPulse {
+  0% { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+
+.hero-title {
+  font-size: clamp(3rem, 8vw, 7rem);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -2px;
+  animation: slideUp 0.8s 0.1s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+.hero-title .word1 { display: block; color: #fff; }
+.hero-title .word2 {
+  display: block;
+  background: linear-gradient(135deg, var(--c1) 0%, var(--c3) 50%, var(--c2) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  background-size: 200%;
+  animation: slideUp 0.8s 0.1s cubic-bezier(0.16,1,0.3,1) both, gradShift 4s ease infinite alternate;
+}
+
+@keyframes gradShift {
+  from { background-position: 0% 50%; }
+  to { background-position: 100% 50%; }
+}
+
+.hero-sub {
+  font-size: 1.1rem;
+  color: var(--muted);
+  margin-top: 20px;
+  font-weight: 300;
+  animation: slideUp 0.8s 0.2s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+.saiful-credit {
+  margin-top: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  animation: slideUp 0.8s 0.3s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+.saiful-line {
+  height: 1px;
+  width: 40px;
+  background: linear-gradient(90deg, transparent, var(--c1));
+}
+
+.saiful-line.r {
+  background: linear-gradient(90deg, var(--c2), transparent);
+}
+
+.saiful-name {
+  font-family: 'Fira Code', monospace;
+  font-size: 12px;
+  letter-spacing: 4px;
+  background: linear-gradient(90deg, var(--c1), var(--c2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 500;
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.8) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── NAV TABS ── */
+.nav-tabs {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 0 24px 48px;
+  animation: slideUp 0.8s 0.4s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+.nav-tab {
+  padding: 10px 22px;
+  border-radius: 100px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--glass-border);
+  background: var(--glass);
+  color: var(--muted);
+  backdrop-filter: blur(12px);
+  transition: all 0.3s;
+  letter-spacing: 0.5px;
+}
+
+.nav-tab:hover, .nav-tab.active {
+  background: rgba(0,255,135,0.08);
+  border-color: rgba(0,255,135,0.3);
+  color: var(--c1);
+  transform: translateY(-2px);
+}
+
+/* ── MAIN ── */
+main {
+  position: relative;
+  z-index: 10;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 24px 80px;
+  display: grid;
+  gap: 20px;
+}
+
+/* ── PLATFORM CARDS ── */
+.pcard {
+  position: relative;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  overflow: hidden;
+  backdrop-filter: blur(20px);
+  transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), border-color 0.3s;
+  animation: cardIn 0.6s ease both;
+}
+
+.pcard:nth-child(1) { animation-delay: 0.1s; }
+.pcard:nth-child(2) { animation-delay: 0.2s; }
+.pcard:nth-child(3) { animation-delay: 0.3s; }
+.pcard:nth-child(4) { animation-delay: 0.4s; }
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(30px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.pcard:hover {
+  transform: translateY(-6px) scale(1.005);
+}
+
+.pcard:nth-child(1):hover { border-color: rgba(0,255,135,0.3); }
+.pcard:nth-child(2):hover { border-color: rgba(255,45,120,0.3); }
+.pcard:nth-child(3):hover { border-color: rgba(255,184,0,0.3); }
+.pcard:nth-child(4):hover { border-color: rgba(96,239,255,0.3); }
+
+/* Glow top border */
+.pcard::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+}
+
+.pcard:nth-child(1)::before { background: linear-gradient(90deg, transparent, var(--c1), transparent); }
+.pcard:nth-child(2)::before { background: linear-gradient(90deg, transparent, var(--c2), transparent); }
+.pcard:nth-child(3)::before { background: linear-gradient(90deg, transparent, var(--c4), transparent); }
+.pcard:nth-child(4)::before { background: linear-gradient(90deg, transparent, var(--c3), transparent); }
+
+/* Corner glow */
+.pcard::after {
+  content: '';
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  filter: blur(40px);
+  opacity: 0.12;
+  transition: opacity 0.3s;
+}
+
+.pcard:nth-child(1)::after { background: var(--c1); }
+.pcard:nth-child(2)::after { background: var(--c2); }
+.pcard:nth-child(3)::after { background: var(--c4); }
+.pcard:nth-child(4)::after { background: var(--c3); }
+.pcard:hover::after { opacity: 0.25; }
+
+.pcard-inner { padding: 32px 36px; position: relative; z-index: 1; }
+
+/* Card Header */
+.pcard-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.pcard-icon {
+  width: 60px; height: 60px;
+  border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.pcard:nth-child(1) .pcard-icon { background: rgba(0,255,135,0.08); border: 1px solid rgba(0,255,135,0.15); box-shadow: 0 0 20px rgba(0,255,135,0.1); }
+.pcard:nth-child(2) .pcard-icon { background: rgba(255,45,120,0.08); border: 1px solid rgba(255,45,120,0.15); box-shadow: 0 0 20px rgba(255,45,120,0.1); }
+.pcard:nth-child(3) .pcard-icon { background: rgba(255,184,0,0.08); border: 1px solid rgba(255,184,0,0.15); box-shadow: 0 0 20px rgba(255,184,0,0.1); }
+.pcard:nth-child(4) .pcard-icon { background: rgba(96,239,255,0.08); border: 1px solid rgba(96,239,255,0.15); box-shadow: 0 0 20px rgba(96,239,255,0.1); }
+
+.pcard-meta { flex: 1; }
+
+.pcard-name {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.5px;
+  margin-bottom: 4px;
+}
+
+.pcard-tag {
+  font-family: 'Fira Code', monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+
+.pcard:nth-child(1) .pcard-tag { color: var(--c1); }
+.pcard:nth-child(2) .pcard-tag { color: var(--c2); }
+.pcard:nth-child(3) .pcard-tag { color: var(--c4); }
+.pcard:nth-child(4) .pcard-tag { color: var(--c3); }
+
+.pcard-badge {
+  padding: 5px 14px;
+  border-radius: 100px;
+  font-family: 'Fira Code', monospace;
+  font-size: 10px;
+  letter-spacing: 1px;
+  font-weight: 500;
+  margin-top: 8px;
+  display: inline-block;
+}
+
+.pcard:nth-child(1) .pcard-badge { background: rgba(0,255,135,0.1); color: var(--c1); border: 1px solid rgba(0,255,135,0.2); }
+.pcard:nth-child(2) .pcard-badge { background: rgba(255,45,120,0.1); color: var(--c2); border: 1px solid rgba(255,45,120,0.2); }
+.pcard:nth-child(3) .pcard-badge { background: rgba(255,184,0,0.1); color: var(--c4); border: 1px solid rgba(255,184,0,0.2); }
+.pcard:nth-child(4) .pcard-badge { background: rgba(96,239,255,0.1); color: var(--c3); border: 1px solid rgba(96,239,255,0.2); }
+
+/* Description */
+.pcard-desc {
+  font-size: 0.95rem;
+  color: rgba(200,230,255,0.7);
+  line-height: 1.75;
+  margin-bottom: 28px;
+  padding: 16px 20px;
+  background: rgba(255,255,255,0.02);
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.04);
+}
+
+/* Steps */
+.steps-title {
+  font-family: 'Fira Code', monospace;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--muted);
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+
+.steps { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+
+.step {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 14px 18px;
+  background: rgba(255,255,255,0.02);
+  border-radius: 12px;
+  border: 1px solid transparent;
+  transition: all 0.25s;
+}
+
+.step:hover {
+  background: rgba(255,255,255,0.04);
+  transform: translateX(6px);
+}
+
+.pcard:nth-child(1) .step:hover { border-color: rgba(0,255,135,0.1); }
+.pcard:nth-child(2) .step:hover { border-color: rgba(255,45,120,0.1); }
+.pcard:nth-child(3) .step:hover { border-color: rgba(255,184,0,0.1); }
+.pcard:nth-child(4) .step:hover { border-color: rgba(96,239,255,0.1); }
+
+.step-n {
+  font-family: 'Fira Code', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  flex-shrink: 0;
+  margin-top: 1px;
+  width: 28px;
+}
+
+.pcard:nth-child(1) .step-n { color: var(--c1); }
+.pcard:nth-child(2) .step-n { color: var(--c2); }
+.pcard:nth-child(3) .step-n { color: var(--c4); }
+.pcard:nth-child(4) .step-n { color: var(--c3); }
+
+.step-t {
+  font-size: 0.9rem;
+  color: rgba(200,230,255,0.8);
+  line-height: 1.6;
+}
+
+.step-t a { text-decoration: none; font-weight: 600; }
+.pcard:nth-child(1) .step-t a { color: var(--c1); }
+.pcard:nth-child(2) .step-t a { color: var(--c2); }
+.pcard:nth-child(3) .step-t a { color: var(--c4); }
+.pcard:nth-child(4) .step-t a { color: var(--c3); }
+.step-t strong { color: #fff; }
+
+/* Reward pill */
+.reward-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 100px;
+  font-family: 'Fira Code', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.pcard:nth-child(1) .reward-pill { background: rgba(0,255,135,0.08); border: 1px solid rgba(0,255,135,0.2); color: var(--c1); }
+.pcard:nth-child(2) .reward-pill { background: rgba(255,45,120,0.08); border: 1px solid rgba(255,45,120,0.2); color: var(--c2); }
+.pcard:nth-child(3) .reward-pill { background: rgba(255,184,0,0.08); border: 1px solid rgba(255,184,0,0.2); color: var(--c4); }
+.pcard:nth-child(4) .reward-pill { background: rgba(96,239,255,0.08); border: 1px solid rgba(96,239,255,0.2); color: var(--c3); }
+
+/* ── SUMMARY CARD ── */
+.summary {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  padding: 36px;
+  backdrop-filter: blur(20px);
+  position: relative;
+  overflow: hidden;
+  animation: cardIn 0.6s 0.5s ease both;
+}
+
+.summary::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--c3), var(--c1), transparent);
+}
+
+.summary-title {
+  font-family: 'Fira Code', monospace;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--muted);
+  margin-bottom: 24px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.summary-title::after { content: ''; flex: 1; height: 1px; background: var(--glass-border); }
+
+.sum-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.sum-item {
+  padding: 18px 20px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  transition: all 0.3s;
+}
+
+.sum-item:hover {
+  background: rgba(255,255,255,0.04);
+  transform: translateY(-3px);
+}
+
+.sum-platform {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 6px;
+}
+
+.sum-action {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.sum-reward {
+  font-family: 'Fira Code', monospace;
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 100px;
+  display: inline-block;
+}
+
+.sum-item:nth-child(1) .sum-reward { background: rgba(0,255,135,0.1); color: var(--c1); }
+.sum-item:nth-child(2) .sum-reward { background: rgba(255,45,120,0.1); color: var(--c2); }
+.sum-item:nth-child(3) .sum-reward { background: rgba(255,184,0,0.1); color: var(--c4); }
+.sum-item:nth-child(4) .sum-reward { background: rgba(96,239,255,0.1); color: var(--c3); }
+
+/* ── FOOTER ── */
+footer {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  padding: 36px 24px;
+  border-top: 1px solid var(--glass-border);
+  font-family: 'Fira Code', monospace;
+  font-size: 0.75rem;
+  color: var(--muted);
+  letter-spacing: 2px;
+}
+
+footer .saiful-footer {
+  background: linear-gradient(90deg, var(--c1), var(--c2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 500;
+}
+
+@media (max-width: 600px) {
+  .pcard-inner { padding: 24px 20px; }
+  .hero-title { letter-spacing: -1px; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+
+<header>
+  <div class="hero-pill"><div class="live-ring"></div> PLATFORM GUIDE 2025</div>
+  <h1 class="hero-title">
+    <span class="word1">OpenGradient</span>
+    <span class="word2">How To Use</span>
+  </h1>
+  <p class="hero-sub">Complete guide to using OpenGradient products & earning points for potential airdrop</p>
+  <div class="saiful-credit">
+    <div class="saiful-line"></div>
+    <span class="saiful-name">✦ SAIFUL ✦</span>
+    <div class="saiful-line r"></div>
+  </div>
+</header>
+
+<nav class="nav-tabs">
+  <div class="nav-tab active">All Platforms</div>
+  <div class="nav-tab">🤖 BitQuant</div>
+  <div class="nav-tab">👥 Twin.fun</div>
+  <div class="nav-tab">💬 Discord</div>
+  <div class="nav-tab">🐦 Twitter/X</div>
+</nav>
+
+<main>
+
+  <!-- BitQuant -->
+  <div class="pcard">
+    <div class="pcard-inner">
+      <div class="pcard-head">
+        <div class="pcard-icon">🤖</div>
+        <div class="pcard-meta">
+          <div class="pcard-name">BitQuant</div>
+          <div class="pcard-tag">// ai-powered defi agent</div>
+          <div class="pcard-badge">⚡ LIVE NOW</div>
+        </div>
+      </div>
+      <div class="pcard-desc">
+        BitQuant is OpenGradient's flagship AI agent for DeFi analytics, trading, and portfolio management. It uses natural language — simply ask questions in plain English and get instant AI-powered insights on crypto markets and DeFi protocols.
+      </div>
+      <div class="steps-title">// Step-by-step guide</div>
+      <div class="steps">
+        <div class="step"><span class="step-n">01</span><span class="step-t">Go to <a href="https://bitquant.io" target="_blank">bitquant.io ↗</a></span></div>
+        <div class="step"><span class="step-n">02</span><span class="step-t">Connect your wallet — use <strong>MetaMask or Rabby Wallet</strong></span></div>
+        <div class="step"><span class="step-n">03</span><span class="step-t">Ask AI questions like: <strong>"What is the current risk profile on Bitcoin?"</strong> or <strong>"Show me top DeFi yields"</strong></span></div>
+        <div class="step"><span class="step-n">04</span><span class="step-t">Use it <strong>every day</strong> to accumulate points — more interaction = more points</span></div>
+        <div class="step"><span class="step-n">05</span><span class="step-t"><strong>Refer friends</strong> to earn bonus points on top of daily activity</span></div>
+      </div>
+      <div class="reward-pill">✅ Reward: Points from daily interaction + referrals</div>
+    </div>
+  </div>
+
+  <!-- Twin.fun -->
+  <div class="pcard">
+    <div class="pcard-inner">
+      <div class="pcard-head">
+        <div class="pcard-icon">👥</div>
+        <div class="pcard-meta">
+          <div class="pcard-name">Twin.fun</div>
+          <div class="pcard-tag">// digital ai twins platform</div>
+          <div class="pcard-badge">🔥 POINTS FARMING</div>
+        </div>
+      </div>
+      <div class="pcard-desc">
+        Twin.fun is a social platform where real creators and investors have AI digital twins. Buy Twin Keys to chat with their AI and earn points on the leaderboard. Every buy or sell trade earns you points. Live on BNB Chain.
+      </div>
+      <div class="steps-title">// Step-by-step guide</div>
+      <div class="steps">
+        <div class="step"><span class="step-n">01</span><span class="step-t">Go to <a href="https://twin.fun" target="_blank">twin.fun ↗</a></span></div>
+        <div class="step"><span class="step-n">02</span><span class="step-t">Connect your wallet → Switch to <strong>BNB Chain (Mainnet)</strong></span></div>
+        <div class="step"><span class="step-n">03</span><span class="step-t">Buy a <strong>Twin Key</strong> — start with a small amount to test</span></div>
+        <div class="step"><span class="step-n">04</span><span class="step-t"><strong>Chat</strong> with the Twin — ask questions and explore their AI</span></div>
+        <div class="step"><span class="step-n">05</span><span class="step-t">Every <strong>Buy/Sell trade</strong> earns points. Invite friends = <strong>100 bonus points</strong> per invite!</span></div>
+      </div>
+      <div class="reward-pill">✅ Reward: Points per trade + 100pts per invite</div>
+    </div>
+  </div>
+
+  <!-- Discord -->
+  <div class="pcard">
+    <div class="pcard-inner">
+      <div class="pcard-head">
+        <div class="pcard-icon">💬</div>
+        <div class="pcard-meta">
+          <div class="pcard-name">Discord Activity</div>
+          <div class="pcard-tag">// community roles & recognition</div>
+          <div class="pcard-badge">👑 ALPHA OG ROLE</div>
+        </div>
+      </div>
+      <div class="pcard-desc">
+        Being active on Discord is one of the most important tasks. You can earn OG and Alpha OG roles — highly valuable for airdrop eligibility. The Alpha OG role requires genuine, consistent contributions — not just random messages.
+      </div>
+      <div class="steps-title">// Step-by-step guide</div>
+      <div class="steps">
+        <div class="step"><span class="step-n">01</span><span class="step-t">Join the <a href="https://discord.gg/ExSAsBz2h" target="_blank">OpenGradient Discord ↗</a></span></div>
+        <div class="step"><span class="step-n">02</span><span class="step-t">Be <strong>active every day</strong> — participate in conversations across all channels</span></div>
+        <div class="step"><span class="step-n">03</span><span class="step-t"><strong>Help new members</strong> — answer questions and guide them through the project</span></div>
+        <div class="step"><span class="step-n">04</span><span class="step-t">Share <strong>quality content</strong> — articles, guides, and news about OpenGradient</span></div>
+        <div class="step"><span class="step-n">05</span><span class="step-t">Consistent real contributions will earn you the prestigious <strong>Alpha OG Role</strong></span></div>
+      </div>
+      <div class="reward-pill">✅ Reward: OG Role → Alpha OG Role</div>
+    </div>
+  </div>
+
+  <!-- Twitter -->
+  <div class="pcard">
+    <div class="pcard-inner">
+      <div class="pcard-head">
+        <div class="pcard-icon">🐦</div>
+        <div class="pcard-meta">
+          <div class="pcard-name">X / Twitter Activity</div>
+          <div class="pcard-tag">// social engagement & ugc</div>
+          <div class="pcard-badge">🎯 GET NOTICED</div>
+        </div>
+      </div>
+      <div class="pcard-desc">
+        Creating quality content about OpenGradient on X is the best way to get noticed by the core team. Posts, threads, and consistent engagement lead to official recognition and potential airdrop eligibility.
+      </div>
+      <div class="steps-title">// Step-by-step guide</div>
+      <div class="steps">
+        <div class="step"><span class="step-n">01</span><span class="step-t">Follow <a href="https://twitter.com/OpenGradient" target="_blank">@OpenGradient ↗</a> and turn on post notifications</span></div>
+        <div class="step"><span class="step-n">02</span><span class="step-t"><strong>Like, Retweet, and Reply</strong> to every OpenGradient post daily</span></div>
+        <div class="step"><span class="step-n">03</span><span class="step-t">Write your own <strong>posts or threads</strong> — always use <strong>#OpenGradient</strong></span></div>
+        <div class="step"><span class="step-n">04</span><span class="step-t">Always tag <strong>@OpenGradient</strong> so the team can see your contributions</span></div>
+        <div class="step"><span class="step-n">05</span><span class="step-t">Spread the word — <strong>onboard new members</strong> and help the community grow</span></div>
+      </div>
+      <div class="reward-pill">✅ Reward: Team recognition + airdrop eligibility</div>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div class="summary">
+    <div class="summary-title">// Quick Summary</div>
+    <div class="sum-grid">
+      <div class="sum-item">
+        <div class="sum-platform">🤖 BitQuant</div>
+        <div class="sum-action">Daily AI chat, ask DeFi questions, refer friends</div>
+        <div class="sum-reward">Points ✅</div>
+      </div>
+      <div class="sum-item">
+        <div class="sum-platform">👥 Twin.fun</div>
+        <div class="sum-action">Buy/Sell Twin Keys, invite friends for bonus</div>
+        <div class="sum-reward">Points ✅</div>
+      </div>
+      <div class="sum-item">
+        <div class="sum-platform">💬 Discord</div>
+        <div class="sum-action">Be active daily, help others, contribute quality content</div>
+        <div class="sum-reward">Alpha OG Role ✅</div>
+      </div>
+      <div class="sum-item">
+        <div class="sum-platform">🐦 X/Twitter</div>
+        <div class="sum-action">Post, engage, tag @OpenGradient consistently</div>
+        <div class="sum-reward">Recognition ✅</div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  BUILT WITH ❤️ BY <span class="saiful-footer">✦ SAIFUL ✦</span> · OPENGRADIENT PLATFORM GUIDE · 2025
+</footer>
+
+<script>
+// Particle system
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
+let W, H;
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+
+resize();
+window.addEventListener('resize', resize);
+
+const colors = ['#00ff87', '#ff2d78', '#60efff', '#ffb800'];
+
+class Particle {
+  constructor() { this.reset(); }
+  reset() {
+    this.x = Math.random() * W;
+    this.y = Math.random() * H;
+    this.size = Math.random() * 1.5 + 0.3;
+    this.speedX = (Math.random() - 0.5) * 0.3;
+    this.speedY = (Math.random() - 0.5) * 0.3;
+    this.color = colors[Math.floor(Math.random() * colors.length)];
+    this.alpha = Math.random() * 0.5 + 0.1;
+    this.life = Math.random() * 200 + 100;
+    this.age = 0;
+  }
+  update() {
+    this.x += this.speedX;
+    this.y += this.speedY;
+    this.age++;
+    if (this.age > this.life || this.x < 0 || this.x > W || this.y < 0 || this.y > H) {
+      this.reset();
+    }
+  }
+  draw() {
+    ctx.save();
+    ctx.globalAlpha = this.alpha * (1 - this.age / this.life);
+    ctx.fillStyle = this.color;
+    ctx.shadowColor = this.color;
+    ctx.shadowBlur = 6;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+for (let i = 0; i < 120; i++) particles.push(new Particle());
+
+function animate() {
+  ctx.clearRect(0, 0, W, H);
+  particles.forEach(p => { p.update(); p.draw(); });
+  requestAnimationFrame(animate);
+}
+
+animate();
+
+// Nav tab interaction
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
